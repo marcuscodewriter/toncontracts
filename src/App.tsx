@@ -22,8 +22,8 @@ function App() {
   return (
     <div>
       <div>
-        <button style={{ position: 'absolute', top: 0, left: 0, width: '50vw', height: '8vh', border: currentView === 0 ? '1px solid #66bb6a' : '', color: currentView === 0 ? 'green' : 'white'}} onClick={() => setCurrentView(0)}>$MIXER Bridge</button>
-        <button disabled={true} style={{ position: 'absolute', top: 0, right: 0, width: '50vw', height: '8vh', border: currentView === 1 ? '1px solid #66bb6a' : '', color: currentView === 1 ? 'green' : 'white'}}>Staking (Soon)</button>
+        <button style={{ position: 'absolute', top: 0, left: 0, width: '50vw', height: '8vh', borderRadius: 0, border: currentView === 0 ? '1px solid #66bb6a' : '', color: currentView === 0 ? 'green' : 'white'}} onClick={() => setCurrentView(0)}>$MIXER Bridge</button>
+        <button disabled={true} style={{ position: 'absolute', top: 0, right: 0, width: '50vw', height: '8vh', borderRadius: 0, border: currentView === 1 ? '1px solid #66bb6a' : '', color: currentView === 1 ? 'green' : 'white'}}>Staking (Soon)</button>
       </div>
       <iframe style={{ backgroundColor: 'black', display: currentView == 0 ? 'flex' : 'none', border: "0", margin: 0, padding: 0, width: "100vw", height: "92vh", position: "absolute", top: '8vh', left: 0 }} src='https://marcuscodewriter.github.io/fluttermix'></iframe>
       <div style={{ display: currentView == 1 ? 'block' : 'none' }}>
