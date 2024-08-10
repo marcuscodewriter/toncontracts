@@ -1,0 +1,153 @@
+.bridge-view {
+  background-color: black;
+  color: white;
+  padding: 16px 0 44px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: black;
+  border: 0;
+  margin: 0;
+  width: 100vw;
+  height: calc(92vh - 60px);
+  position: absolute;
+  top: 8vh;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.stepper-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.step-widget {
+  text-align: center;
+  margin: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-widget .circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: grey;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.step-widget.selected .circle {
+  background-color: rgb(14, 133, 14);
+}
+
+.step-widget .label {
+  margin-top: 5px;
+  font-weight: normal;
+}
+
+.step-widget.selected .label {
+  margin-top: 5px;
+  font-weight: bold;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.unified-search {
+  width: 80vw;
+  text-align: center;
+  /* overflow-y: scroll; */
+}
+
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.unified-search input {
+  width: 90%;
+  padding: 10px;
+  margin: 16px 0;
+  border: 2px solid rgb(14, 133, 14);
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  background-color: #333;
+  color: white;
+}
+
+.unified-search .options {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-evenly;
+  overflow-y: scroll;
+  padding: 10px;
+  /* margin-top: 10px; */
+  margin-bottom: 20px;
+  background-color: rgb(21, 21, 21);
+  border-radius: 12px;
+  max-height: 40vh;
+  /* width: 100%; */
+}
+
+.unified-search .option {
+  padding: 10px;
+  /* margin: 26px 5px; */
+  max-height: 24px;
+  background-color: rgb(14, 133, 14);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.unified-search .option.selected {
+  background-color: rgb(3, 69, 3);
+}
+
+.loading {
+  color: rgb(14, 133, 14);
+  font-weight: bold;
+}
+
+.navigation {
+  margin-top: 20px;
+}
+
+.navigation button {
+  padding: 10px 20px;
+  margin: 0 5px;
+  background-color: rgb(14, 133, 14);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.navigation button:disabled {
+  background-color: grey;
+  cursor: not-allowed;
+}
+
+.error {
+  margin-top: 20px;
+  color: red;
+  font-weight: bold;
+}
