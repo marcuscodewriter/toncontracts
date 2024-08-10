@@ -46,8 +46,8 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   currentView
 }) => {
   const changeNowApiKey: string = "9e27b09a64a0a1251c512396f77b7d41484804d2bc80bcf16b3aff8894679e13";
-  const tonConsoleApiKey: string = "AFOY3TQXSDIHJIYAAAAACL3Q2BJWZAXFIGT5LZDNPBPHJXKNEHYA7XDDWFIWGQMYRCG333Q";
-  const tgBotToken: string = "6672603630:AAGcfOtvXAqT6BRqqN8aKW4qcnah5sS05I4";
+  // const tonConsoleApiKey: string = "AFOY3TQXSDIHJIYAAAAACL3Q2BJWZAXFIGT5LZDNPBPHJXKNEHYA7XDDWFIWGQMYRCG333Q";
+  // const tgBotToken: string = "6672603630:AAGcfOtvXAqT6BRqqN8aKW4qcnah5sS05I4";
   const tmaId: number | null = (window as any).Telegram.WebApp.initDataUnsafe.user?.id ?? (window as any).Telegram.WebApp.chat?.id;
   
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -192,35 +192,35 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   };
 
   // Equivalent function from Flutter: verifyAddress
-  const verifyAddress = async (address: string) => {
-    try {
-      const tonConsoleResponse = await fetch(
-        'https://tonapi.io/v2/accounts/$address/jettons/EQAdFbynSUlzIlh_I4fXuYaer3rvY0TG0BK-NQZ-Y871pZoM',
-        {
-          headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${tonConsoleApiKey}`,
-        },
-      });
+  // const verifyAddress = async (address: string) => {
+  //   try {
+  //     const tonConsoleResponse = await fetch(
+  //       'https://tonapi.io/v2/accounts/$address/jettons/EQAdFbynSUlzIlh_I4fXuYaer3rvY0TG0BK-NQZ-Y871pZoM',
+  //       {
+  //         headers: {
+  //         'Accept': 'application/json',
+  //         'Authorization': `Bearer ${tonConsoleApiKey}`,
+  //       },
+  //     });
 
-      const stringBalance = (await tonConsoleResponse.json())['balance'];
-      const balanceLarge = parseInt(stringBalance);
-      const divisor = Math.pow(10, 9);
-      const balance = balanceLarge / divisor;
+  //     const stringBalance = (await tonConsoleResponse.json())['balance'];
+  //     const balanceLarge = parseInt(stringBalance);
+  //     const divisor = Math.pow(10, 9);
+  //     const balance = balanceLarge / divisor;
 
-      return balance;
-    } catch (error) {
-      console.log(error);
-      setError((error as any).toString());
-      return 0;
-    }
-  };
+  //     return balance;
+  //   } catch (error) {
+  //     console.log(error);
+  //     setError((error as any).toString());
+  //     return 0;
+  //   }
+  // };
 
-  // Equivalent function from Flutter: escapeMarkdown
-  const escapeMarkdown = (text: string) => {
-    // Escape markdown logic here
-    return text.replace(/([_{}[\]|()#+-.!])/g, '\\$1');
-  };
+  // // Equivalent function from Flutter: escapeMarkdown
+  // const escapeMarkdown = (text: string) => {
+  //   // Escape markdown logic here
+  //   return text.replace(/([_{}[\]|()#+-.!])/g, '\\$1');
+  // };
 
   const goToPreviousStep = () => {
     console.log(fromAmount, fromCurrency, fromNetwork, toCurrency, toNetwork, recipientAddress);
@@ -291,7 +291,6 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                 selectedOption={fromCurrency && fromNetwork ? `$${fromCurrency.toUpperCase()} (${fromNetwork.toUpperCase()})` : undefined}
               />
               <AmountField
-                label="Amount"
                 value={fromAmount ?? 0}
                 onChange={(value) => {
                   setFromAmount(value);
@@ -408,7 +407,7 @@ const chunkArray = (array: Array<any>, size: number) => {
   return result;
 }
 
-const AmountField: React.FC<{ label: string, value: number, onChange: (value: number) => void }> = ({ label, value, onChange }) => {
+const AmountField: React.FC<{ value: number, onChange: (value: number) => void }> = ({ value, onChange }) => {
   return (
     <div className="unified-search">
       {/* <div>{label}</div> */}

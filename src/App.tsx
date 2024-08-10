@@ -1,7 +1,7 @@
 import './App.css';
 import { useMainContract } from './hooks/useMainContract';
 import { useTonConnect } from './hooks/useTonConnect';
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import BridgeView from './components/BridgeView';
 import StakingView from './components/StakingView';
 
