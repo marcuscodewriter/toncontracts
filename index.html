@@ -4,9 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/toncontracts/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-    <script type="module" crossorigin src="/toncontracts/assets/index-CmTe9Hcx.js"></script>
-    <link rel="stylesheet" crossorigin href="/toncontracts/assets/index-N-hZb78n.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      const tmaId = window.Telegram.WebApp.initDataUnsafe.user?.id ?? window.Telegram.WebApp.chat?.id;
+      if (tmaId) alert(tmaId);
+      function twaClose() {
+        window.Telegram.WebApp.openTelegramLink('https://t.me/ton_mix_bot');
+        window.Telegram.WebApp.close();
+      }
+  </script>
+    <title>$MIXER Bridge</title>
+    <script type="module" crossorigin src="/toncontracts/assets/index-B9p4NHyg.js"></script>
+    <link rel="stylesheet" crossorigin href="/toncontracts/assets/index-BGUknRIt.css">
   </head>
   <body>
     <div id="root"></div>
