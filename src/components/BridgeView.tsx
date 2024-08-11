@@ -425,7 +425,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
           ))}
         </div>
         <div style={{  borderRadius: 14, backgroundColor: !(fromAmount || fromCurrency) ? 'transparent' : 'rgb(21,21,21)', display: !(fromAmount || fromCurrency) ? 'none' : 'flex', alignItems: 'center', textAlign: 'center', height: 32, margin: '8px 0 12px', padding: '4px 14px', width: 'fit-content', color: 'white', fontSize: 18, fontWeight: 'bold' }}>
-          {`${fromAmount && fromCurrency ? fromAmount : ''} ${(fromCurrency ? `$${fromCurrency}` : '').toUpperCase()} ${(fromNetwork ? `(${fromNetwork})` : '').toUpperCase()} ${!toCurrency ? '' : `${' '}🔀${' '}`} ${toAmount ? toAmount : ''} ${(toCurrency ? `$${toCurrency}` : '').toUpperCase()} ${(toNetwork ? `(${toNetwork})` : '').toUpperCase()}`}
+          {`${fromAmount ? fromAmount : ''} ${(fromCurrency ? `$${fromCurrency}` : '').toUpperCase()} ${(fromNetwork ? `(${fromNetwork})` : '').toUpperCase()} ${!toCurrency ? '' : `${' '}🔀${' '}`} ${toAmount ? toAmount : ''} ${(toCurrency ? `$${toCurrency}` : '').toUpperCase()} ${(toNetwork ? `(${toNetwork})` : '').toUpperCase()}`}
         </div>
         <div className="scroll-view">
           <div className="content">
