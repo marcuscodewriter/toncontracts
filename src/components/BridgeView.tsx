@@ -483,11 +483,17 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                 <div className='unified-search'>
                   {/* <div>{`${fromAmount} ${fromCurrency?.toUpperCase()} (${fromNetwork?.toUpperCase()}) 🔀 ${toAmount} ${toCurrency?.toUpperCase()} (${toNetwork?.toUpperCase()})`}</div> */}
                   <input
+                    autoComplete='off'
+                    autoCorrect='off'
+                    autoCapitalize='off'
                     type="text"
                     placeholder="Recipient Address"
                     value={recipientAddress}
                     onChange={(e) => setRecipientAddress(e.target.value)}
                   />
+                  <button onClick={async () => {
+                    setRecipientAddress(await navigator.clipboard.readText());
+                  }} style={{ cursor: 'pointer', fontSize: 15 }}>Paste</button>
                 </div>
               </div>
             )}
@@ -571,6 +577,9 @@ const AmountField: React.FC<{ value: number, onChange: (value: number) => void }
     <div className="unified-search">
       {/* <div>{label}</div> */}
       <input
+        autoComplete='off'
+        autoCorrect='off'
+        autoCapitalize='off'
         type="number"
         min={0}
         onFocus={(e) => {
@@ -591,6 +600,9 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({ query, currentStep, optio
     <div className="unified-search">
       {/* <div>{currentStep === 0 ? 'Select Origin' : 'Select Destination'}</div> */}
       <input
+        autoComplete='off'
+        autoCorrect='off'
+        autoCapitalize='off'
         type="text"
         placeholder={"Search " + (currentStep === 0 ? 'origin' : 'destination') + " currency"}
         value={query.toUpperCase()}
