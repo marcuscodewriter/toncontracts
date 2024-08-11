@@ -308,18 +308,18 @@ const BridgeView: React.FC<BridgeViewProps> = ({
               ? [
                   [
                     {
-                      text: '✈️  BRIDGE ${fromAmount} \$TON  ✈️',
+                      text: `✈️  BRIDGE ${fromAmount} \$TON  ✈️`,
                       url:
                           `ton://transfer/${depositAddress}?amount=${fromAmount! * Math.pow(10, 9)}`
                     }
                   ],
                   [
-                    {'text': 'Cancel ❌', 'callback_data': 'dismiss'}
+                    {text: 'Cancel ❌', 'callback_data': 'dismiss'}
                   ]
                 ]
               : [
                   [
-                    {'text': 'Cancel ❌', 'callback_data': 'dismiss'}
+                    {text: 'Cancel ❌', 'callback_data': 'dismiss'}
                   ]
                 ],
             },
