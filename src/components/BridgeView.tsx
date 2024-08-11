@@ -493,9 +493,9 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                     value={recipientAddress}
                     onChange={(e) => setRecipientAddress(e.target.value)}
                   />
-                  <button onClick={async () => {
+                  {/* <button onClick={async () => {
                     setRecipientAddress(await navigator.clipboard.readText());
-                  }} style={{ cursor: 'pointer', fontSize: 15 }}>Paste</button>
+                  }} style={{ cursor: 'pointer', fontSize: 15 }}>Paste</button> */}
                 </div>
               </div>
             )}
