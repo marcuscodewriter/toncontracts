@@ -588,6 +588,7 @@ const AmountField: React.FC<{ value: number, onChange: (value: number) => void }
           if (e.target.value === '0') {
             e.target.value = '';
           }
+          document.getElementById('scroll-view')?.scrollTo({ top: 16, behavior: 'smooth' });
         }}
         placeholder={`Amount`}
         value={isNaN(value) ? '' : value}
