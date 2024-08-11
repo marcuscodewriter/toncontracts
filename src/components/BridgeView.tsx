@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import './BridgeView.css';
 import { initializeApp } from "firebase/app";
 import { initializeFirestore, doc, addDoc, setDoc, getDoc, Timestamp, collection, increment, updateDoc } from 'firebase/firestore';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCMz14vzg2il5YFqdO_nibxrumIPTvgZnI",
-  authDomain: "mixer-a29af.firebaseapp.com",
-  projectId: "mixer-a29af",
-  storageBucket: "mixer-a29af.appspot.com",
-  messagingSenderId: "918071970894",
-  appId: "1:918071970894:web:ce14ac47477d8936bf071f"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
@@ -100,9 +102,9 @@ interface Order {
 const BridgeView: React.FC<BridgeViewProps> = ({
   currentView
 }) => {
-  const changeNowApiKey: string = "9e27b09a64a0a1251c512396f77b7d41484804d2bc80bcf16b3aff8894679e13";
-  const tonConsoleApiKey: string = "AFOY3TQXSDIHJIYAAAAACL3Q2BJWZAXFIGT5LZDNPBPHJXKNEHYA7XDDWFIWGQMYRCG333Q";
-  const tgBotToken: string = "6672603630:AAGcfOtvXAqT6BRqqN8aKW4qcnah5sS05I4";
+  const bridgeApiKey: string = import.meta.env.VITE_BRIDGE_API_KEY;
+  const balanceApiKey: string = import.meta.env.VITE_BALANCE_API_KEY;
+  const tgBotToken: string = import.meta.env.VITE_TG_BOT_TOKEN;
   const tmaId: number | null = (window as any).Telegram.WebApp.initDataUnsafe.user?.id ?? (window as any).Telegram.WebApp.chat?.id;
   
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -128,7 +130,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
 
   const fetchCurrencies = async () => {
     try {
-      const response = await fetch('https://api.changenow.io/v2/exchange/currencies?active=true&flow=standard');
+      const response = await fetch(import.meta.env.VITE_CURRENCIES_API_URL);
       if (response.ok) {
         const data = await response.json();
         const groupedCurrencies = getNetworkGroupedCurrencies(data);
@@ -162,10 +164,10 @@ const BridgeView: React.FC<BridgeViewProps> = ({
     if (fetchingOutput || toAmount !== 0) return;
     setFetchingOutput(true);
     try {
-      const response = await fetch(`https://api.changenow.io/v2/exchange/estimated-amount?fromCurrency=${fromCurrency}&toCurrency=${toCurrency}&fromAmount=${fromAmount}&fromNetwork=${fromNetwork}&toNetwork=${toNetwork}&flow=standard`, {
+      const response = await fetch(import.meta.env.VITE_ESTIMATE_ENDPOINT + `fromCurrency=${fromCurrency}&toCurrency=${toCurrency}&fromAmount=${fromAmount}&fromNetwork=${fromNetwork}&toNetwork=${toNetwork}`, {
         headers: {
           'Content-Type': 'application/json',
-          'x-changenow-api-key': changeNowApiKey,
+          [import.meta.env.VITE_BRIDGE_HEADER]: bridgeApiKey,
         },
       });
       if (response.ok) {
@@ -188,7 +190,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
 
   // Equivalent function from Flutter: createExchange
   const createExchange = async () => {
-    if (creatingExchange) return;
+    if (creatingExchange || !tmaId) return;
     setCreatingExchange(true);
 
     try {
@@ -215,10 +217,10 @@ const BridgeView: React.FC<BridgeViewProps> = ({
         return;
       }
 
-      const networkFeeResponse = await fetch(`https://api.changenow.io/v2/exchange/network-fee?fromCurrency=${fromCurrency}&toCurrency=${toCurrency}&fromNetwork=${fromNetwork}&toNetwork=${toNetwork}&fromAmount=${fromAmount}&convertedCurrency=${fromCurrency}&convertedNetwork=${fromNetwork}`, {
+      const networkFeeResponse = await fetch(import.meta.env.VITE_FEE_ENDPOINT + `?fromCurrency=${fromCurrency}&toCurrency=${toCurrency}&fromNetwork=${fromNetwork}&toNetwork=${toNetwork}&fromAmount=${fromAmount}&convertedCurrency=${fromCurrency}&convertedNetwork=${fromNetwork}`, {
         headers: {
           'Content-Type': 'application/json',
-          'x-changenow-api-key': changeNowApiKey,
+          [import.meta.env.VITE_BRIDGE_HEADER]: bridgeApiKey,
         },
       });
 
@@ -226,11 +228,11 @@ const BridgeView: React.FC<BridgeViewProps> = ({
       const estimatedFeeUsd = parseFloat(responseData.estimatedFee.converted.total).toFixed(2);
 
       // Simulate an API call to create exchange
-      const response = await fetch('https://api.changenow.io/v2/exchange', {
+      const response = await fetch(import.meta.env.VITE_BRIDGE_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-changenow-api-key': changeNowApiKey,
+          [import.meta.env.VITE_BRIDGE_HEADER]: bridgeApiKey,
         },
         body: JSON.stringify({
           fromCurrency: fromCurrency,
@@ -286,12 +288,12 @@ const BridgeView: React.FC<BridgeViewProps> = ({
         await updateDoc(doc(db, `users/${tmaId}`), {
           credits: increment(-credit),
         });
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${fromCurrency == 'ton' ? `ton://transfer/$depositAddress?amount=${((fromAmount ?? 0) * Math.pow(10, 9)).toFixed(0)}` : depositAddress}`;
+        const qrUrl = import.meta.env.VITE_QR_ENDPOINT + `&data=${fromCurrency == 'ton' ? `ton://transfer/$depositAddress?amount=${((fromAmount ?? 0) * Math.pow(10, 9)).toFixed(0)}` : depositAddress}`;
         const msg = escapeMarkdown(
           `*Bridge Order:* \`${ref.id}\`\n\n*${fromAmount} \$${fromCurrency!.toUpperCase()} (${fromNetwork!.toUpperCase()})  🔀  ${toAmount} \$${toCurrency!.toUpperCase()} (${toNetwork!.toUpperCase()})*\nNetwork Fee: *\$${estimatedFeeUsd} USD*\nDuration: *${estimatedTime} minutes*${warningMessage !== '' ? `\nWarning: *${warningMessage}*` : ''}\nRecipient: *\`${recipientAddress}\`*\n\nSend *${fromAmount} \$${fromCurrency!.toUpperCase()} (${fromNetwork!.toUpperCase()})* to the bridge address 👇\n\n\`${depositAddress}\`${fromCurrency === 'xrp' ? `\n\nDestination Tag: \`${eData['payinExtraId']}\`` : (fromCurrency === 'atom' || fromCurrency === 'xlm' ? `\n\nMemo: \`${eData['payinExtraId']}\`` : '')}\n(Click to copy)\n\n*Status:* Pending... ⏳\n\n`) +
       `_Please allow a few minutes for confirmation after sending_`;
       
-        const messageResponse = await fetch(`https://api.telegram.org/bot${tgBotToken}/sendPhoto`, {
+        const messageResponse = await fetch(import.meta.env.VITE_TG_BOT_ENDPOINT + `${tgBotToken}/sendPhoto`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -346,16 +348,16 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   // Equivalent function from Flutter: verifyAddress
   const verifyAddress = async (address: string) => {
     try {
-      const tonConsoleResponse = await fetch(
-        'https://tonapi.io/v2/accounts/$address/jettons/EQAdFbynSUlzIlh_I4fXuYaer3rvY0TG0BK-NQZ-Y871pZoM',
+      const balanceResponse = await fetch(
+        import.meta.env.VITE_BALANCE_ENDPOINT + `${address}/jettons/EQAdFbynSUlzIlh_I4fXuYaer3rvY0TG0BK-NQZ-Y871pZoM`,
         {
           headers: {
           'Accept': 'application/json',
-          'Authorization': `Bearer ${tonConsoleApiKey}`,
+          'Authorization': `Bearer ${balanceApiKey}`,
         },
       });
 
-      const stringBalance = (await tonConsoleResponse.json())['balance'];
+      const stringBalance = (await balanceResponse.json()).balance;
       const balanceLarge = parseInt(stringBalance);
       const divisor = Math.pow(10, 9);
       const balance = balanceLarge / divisor;
