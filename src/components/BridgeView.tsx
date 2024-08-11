@@ -161,7 +161,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   };
 
   const estimateOutput = async () => {
-    if (fetchingOutput || toAmount !== 0) return;
+    if (fetchingOutput || (toAmount !== 0 && toAmount !== null)) return;
     setFetchingOutput(true);
     try {
       const response = await fetch(import.meta.env.VITE_ESTIMATE_ENDPOINT + `fromCurrency=${fromCurrency}&toCurrency=${toCurrency}&fromAmount=${fromAmount}&fromNetwork=${fromNetwork}&toNetwork=${toNetwork}`, {
@@ -449,7 +449,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                   value={fromAmount ?? 0}
                   onChange={(value) => {
                     setFromAmount(value);
-                    setToAmount(0);
+                    setToAmount(null);
                     setEstimatedFee(0);
                     setEstimatedTime('');
                     setWarningMessage('');
