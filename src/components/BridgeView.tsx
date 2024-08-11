@@ -288,7 +288,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
         await updateDoc(doc(db, `users/${tmaId}`), {
           credits: increment(-credit),
         });
-        const qrUrl = import.meta.env.VITE_QR_ENDPOINT + `&data=${fromCurrency == 'ton' ? `ton://transfer/$depositAddress?amount=${((fromAmount ?? 0) * Math.pow(10, 9)).toFixed(0)}` : depositAddress}`;
+        const qrUrl = import.meta.env.VITE_QR_ENDPOINT + `&data=${fromCurrency == 'ton' ? `ton://transfer/${depositAddress}?amount=${((fromAmount ?? 0) * Math.pow(10, 9)).toFixed(0)}` : depositAddress}`;
         const msg = escapeMarkdown(
           `*Bridge Order:* \`${ref.id}\`\n\n*${fromAmount} \$${fromCurrency!.toUpperCase()} (${fromNetwork!.toUpperCase()})  🔀  ${toAmount} \$${toCurrency!.toUpperCase()} (${toNetwork!.toUpperCase()})*\nNetwork Fee: *\$${estimatedFeeUsd} USD*\nDuration: *${estimatedTime} minutes*${warningMessage !== '' ? `\nWarning: *${warningMessage}*` : ''}\nRecipient: *\`${recipientAddress}\`*\n\nSend *${fromAmount} \$${fromCurrency!.toUpperCase()} (${fromNetwork!.toUpperCase()})* to the bridge address 👇\n\n\`${depositAddress}\`${fromCurrency === 'xrp' ? `\n\nDestination Tag: \`${eData['payinExtraId']}\`` : (fromCurrency === 'atom' || fromCurrency === 'xlm' ? `\n\nMemo: \`${eData['payinExtraId']}\`` : '')}\n(Click to copy)\n\n*Status:* Pending... ⏳\n\n`) +
       `_Please allow a few minutes for confirmation after sending_`;
@@ -308,7 +308,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
               ? [
                   [
                     {
-                      text: '✈️  BRIDGE $fromAmount \$TON  ✈️',
+                      text: '✈️  BRIDGE ${fromAmount} \$TON  ✈️',
                       url:
                           `ton://transfer/${depositAddress}?amount=${fromAmount! * Math.pow(10, 9)}`
                     }
@@ -427,9 +427,37 @@ const BridgeView: React.FC<BridgeViewProps> = ({
         <div style={{  borderRadius: 14, backgroundColor: !(fromAmount && fromCurrency) ? 'transparent' : 'rgb(21,21,21)', display: 'flex', alignItems: 'center', textAlign: 'center', height: 32, margin: '8px 0 12px', padding: '4px 14px', width: 'fit-content', color: 'white', fontSize: 18, fontWeight: 'bold' }}>
           {`${fromAmount && fromCurrency ? fromAmount : ''} ${(fromCurrency ? `$${fromCurrency}` : '').toUpperCase()} ${(fromNetwork ? `(${fromNetwork})` : '').toUpperCase()} ${!toCurrency ? '' : `${' '}🔀${' '}`} ${toAmount ? toAmount : ''} ${(toCurrency ? `$${toCurrency}` : '').toUpperCase()} ${(toNetwork ? `(${toNetwork})` : '').toUpperCase()}`}
         </div>
-        <div className="content">
-          {currentStep === 0 && (
-            <div>
+        <div className="scroll-view">
+          <div className="content">
+            {currentStep === 0 && (
+              <div>
+                <UnifiedSearch
+                  query={query}
+                  currentStep={currentStep}
+                  options={Array.from(currencies.entries()).flatMap(([network, currs]) =>
+                    currs.map(curr => `$${curr.ticker} (${network})`)
+                  ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '')}
+                  onSelected={(selection) => {
+                    const [currency, network] = selection.split(' ');
+                    setFromCurrency(currency.slice(1).toLowerCase());
+                    setFromNetwork(network.slice(1, -1).toLowerCase());
+                  }}
+                  onSearch={setQuery}
+                  selectedOption={fromCurrency && fromNetwork ? `$${fromCurrency.toUpperCase()} (${fromNetwork.toUpperCase()})` : undefined}
+                />
+                <AmountField
+                  value={fromAmount ?? 0}
+                  onChange={(value) => {
+                    setFromAmount(value);
+                    setToAmount(0);
+                    setEstimatedFee(0);
+                    setEstimatedTime('');
+                    setWarningMessage('');
+                  }}
+                />
+              </div>
+            )}
+            {currentStep === 1 && (
               <UnifiedSearch
                 query={query}
                 currentStep={currentStep}
@@ -438,95 +466,69 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                 ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '')}
                 onSelected={(selection) => {
                   const [currency, network] = selection.split(' ');
-                  setFromCurrency(currency.slice(1).toLowerCase());
-                  setFromNetwork(network.slice(1, -1).toLowerCase());
+                  setToCurrency(currency.slice(1).toLowerCase());
+                  setToNetwork(network.slice(1, -1).toLowerCase());
                 }}
                 onSearch={setQuery}
-                selectedOption={fromCurrency && fromNetwork ? `$${fromCurrency.toUpperCase()} (${fromNetwork.toUpperCase()})` : undefined}
+                selectedOption={toCurrency && toNetwork ? `$${toCurrency.toUpperCase()} (${toNetwork.toUpperCase()})` : undefined}
               />
-              <AmountField
-                value={fromAmount ?? 0}
-                onChange={(value) => {
-                  setFromAmount(value);
-                  setToAmount(0);
-                  setEstimatedFee(0);
-                  setEstimatedTime('');
-                  setWarningMessage('');
-                }}
-              />
-            </div>
-          )}
-          {currentStep === 1 && (
-            <UnifiedSearch
-              query={query}
-              currentStep={currentStep}
-              options={Array.from(currencies.entries()).flatMap(([network, currs]) =>
-                currs.map(curr => `$${curr.ticker} (${network})`)
-              ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '')}
-              onSelected={(selection) => {
-                const [currency, network] = selection.split(' ');
-                setToCurrency(currency.slice(1).toLowerCase());
-                setToNetwork(network.slice(1, -1).toLowerCase());
-              }}
-              onSearch={setQuery}
-              selectedOption={toCurrency && toNetwork ? `$${toCurrency.toUpperCase()} (${toNetwork.toUpperCase()})` : undefined}
-            />
-          )}
-          {currentStep === 2 && (
-            <div>
-              {fetchingOutput ? (
-                <div className="loading">Calculating output...</div>
-              ) : (
-                <></>
-              )}
-              <div className='unified-search'>
+            )}
+            {currentStep === 2 && (
+              <div>
+                {fetchingOutput ? (
+                  <div className="loading">Calculating output...</div>
+                ) : (
+                  <></>
+                )}
+                <div className='unified-search'>
+                  {/* <div>{`${fromAmount} ${fromCurrency?.toUpperCase()} (${fromNetwork?.toUpperCase()}) 🔀 ${toAmount} ${toCurrency?.toUpperCase()} (${toNetwork?.toUpperCase()})`}</div> */}
+                  <input
+                    type="text"
+                    placeholder="Recipient Address"
+                    value={recipientAddress}
+                    onChange={(e) => setRecipientAddress(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+            {currentStep === 3 && (
+              <div style={{ textAlign: 'center', maxWidth: '77%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                 {/* <div>{`${fromAmount} ${fromCurrency?.toUpperCase()} (${fromNetwork?.toUpperCase()}) 🔀 ${toAmount} ${toCurrency?.toUpperCase()} (${toNetwork?.toUpperCase()})`}</div> */}
-                <input
-                  type="text"
-                  placeholder="Recipient Address"
-                  value={recipientAddress}
-                  onChange={(e) => setRecipientAddress(e.target.value)}
-                />
+                <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center', fontSize: '17px', width: '100%', fontWeight: 'bold', backgroundColor: 'rgb(21,21,21)', borderRadius: 12, padding: '8px 12px', margin: '8px auto 8px auto' }}>
+                  Recipient:
+                  <span onClick={() => {
+                    navigator.clipboard.writeText(recipientAddress);
+                  }} style={{ cursor: 'pointer', fontSize: 15 }}><em>{recipientAddress.slice(0,4)}...{recipientAddress.slice(-4)}</em></span>
+                </div>
               </div>
-            </div>
-          )}
-          {currentStep === 3 && (
-            <div style={{ textAlign: 'center', maxWidth: '77%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-              {/* <div>{`${fromAmount} ${fromCurrency?.toUpperCase()} (${fromNetwork?.toUpperCase()}) 🔀 ${toAmount} ${toCurrency?.toUpperCase()} (${toNetwork?.toUpperCase()})`}</div> */}
-              <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center', fontSize: '17px', width: '100%', fontWeight: 'bold', backgroundColor: 'rgb(21,21,21)', borderRadius: 12, padding: '8px 12px', margin: '8px auto 8px auto' }}>
-                Recipient:
-                <span onClick={() => {
-                  navigator.clipboard.writeText(recipientAddress);
-                }} style={{ cursor: 'pointer', fontSize: 15 }}><em>{recipientAddress.slice(0,4)}...{recipientAddress.slice(-4)}</em></span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+          <div className="navigation">
+            {currentStep > 0 && (
+              <button
+                onClick={goToPreviousStep}
+                disabled={creatingExchange && currentStep === 3}
+              >
+                  Back
+              </button>
+            )}
+            {currentStep < 3 && (
+              <button
+                onClick={goToNextStep}
+                disabled={!(fromCurrency && fromNetwork && fromAmount && fromAmount > 0) && currentStep === 0 || !(toCurrency && toNetwork) && currentStep === 1 || !(recipientAddress && !fetchingOutput) && currentStep === 2}
+              >
+                Next
+              </button>
+            )}
+            {currentStep === 3 && (
+              <button onClick={createExchange} disabled={creatingExchange}>
+                {creatingExchange ? 'Creating Exchange...' : 'Submit'}
+              </button>
+            )}
+          </div>
+          {error && <div className="error">{error}</div>}
         </div>
-        <div className="navigation">
-          {currentStep > 0 && (
-            <button
-              onClick={goToPreviousStep}
-              disabled={creatingExchange && currentStep === 3}
-            >
-                Back
-            </button>
-          )}
-          {currentStep < 3 && (
-            <button
-              onClick={goToNextStep}
-              disabled={!(fromCurrency && fromNetwork && fromAmount && fromAmount > 0) && currentStep === 0 || !(toCurrency && toNetwork) && currentStep === 1 || !(recipientAddress && !fetchingOutput) && currentStep === 2}
-            >
-              Next
-            </button>
-          )}
-          {currentStep === 3 && (
-            <button onClick={createExchange} disabled={creatingExchange}>
-              {creatingExchange ? 'Creating Exchange...' : 'Submit'}
-            </button>
-          )}
-        </div>
-        {error && <div className="error">{error}</div>}
-      </div>)}
+        </div>)}
     </div>
   );
 };
