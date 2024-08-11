@@ -22,7 +22,6 @@
   display: flex;
   flex-direction: column;
   max-height: 70vh;
-  padding-bottom: 32px;
   width: 100vw;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -139,7 +138,7 @@ input[type=number] {
 }
 
 .navigation {
-  margin-top: 20px;
+  margin: 20px 0 50px;
 }
 
 .navigation button {
