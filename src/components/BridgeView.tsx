@@ -1,5 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import './BridgeView.css';
+import { initializeApp } from "firebase/app";
+import { initializeFirestore, doc, addDoc, setDoc, getDoc, Timestamp, collection, increment, updateDoc } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMz14vzg2il5YFqdO_nibxrumIPTvgZnI",
+  authDomain: "mixer-a29af.firebaseapp.com",
+  projectId: "mixer-a29af",
+  storageBucket: "mixer-a29af.appspot.com",
+  messagingSenderId: "918071970894",
+  appId: "1:918071970894:web:ce14ac47477d8936bf071f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+});
+
+const networks = new Map([
+  ['TON', 'ton'],
+  ['BTC', 'btc'],
+  ['ETH', 'eth'],
+  ['SOL', 'sol'],
+  ['BASE', 'base'],
+  ['BSC', 'bsc'],
+  ['DOT', 'dot'],
+  ['XMR', 'xmr'],
+  ['XRP', 'xrp'],
+  ['ADA', 'ada'],
+  ['ALGO', 'algo'],
+  ['APT', 'apt'],
+  ['ARB', 'arbitrum'],
+  ['ATOM', 'atom'],
+  ['AVAX', 'cchain'],
+  ['BCH', 'bch'],
+  ['BSV', 'bsv'],
+  ['CELO', 'celo'],
+  ['ETC', 'etc'],
+  ['ETHW', 'ethw'],
+  ['FTM', 'ftm'],
+  ['KAVA', 'kava'],
+  ['LTC', 'ltc'],
+  ['MATIC', 'matic'],
+  ['NEAR', 'near'],
+  ['OP', 'op'],
+  ['PLS', 'pulse'],
+  ['SEI', 'sei'],
+  ['TIA', 'tia'],
+  ['TRX', 'trx'],
+  ['XEC', 'xec'],
+  ['XLM', 'xlm'],
+  ['XTZ', 'xtz'],
+  ['ZEC', 'zec'],
+  ['ZIL', 'zil'],
+  ['ZKSYNC', 'zksync']
+]);
 
 interface BridgeViewProps {
   currentView?: number;
@@ -21,7 +76,7 @@ interface ExchangeEstimate {
 interface Order {
   credit: number;
   chatId: number | null;
-  amount: number;
+  amount: number | null;
   fromCurrency: string | null;
   toCurrency: string | null;
   toNetwork: string | null;
@@ -34,10 +89,10 @@ interface Order {
   depositAddress: string;
   status: string;
   step: number;
-  toAmount: number;
+  toAmount: number | null;
   exchangeId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   estimatedTime: string;
   warningMessage: string;
 }
@@ -46,8 +101,8 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   currentView
 }) => {
   const changeNowApiKey: string = "9e27b09a64a0a1251c512396f77b7d41484804d2bc80bcf16b3aff8894679e13";
-  // const tonConsoleApiKey: string = "AFOY3TQXSDIHJIYAAAAACL3Q2BJWZAXFIGT5LZDNPBPHJXKNEHYA7XDDWFIWGQMYRCG333Q";
-  // const tgBotToken: string = "6672603630:AAGcfOtvXAqT6BRqqN8aKW4qcnah5sS05I4";
+  const tonConsoleApiKey: string = "AFOY3TQXSDIHJIYAAAAACL3Q2BJWZAXFIGT5LZDNPBPHJXKNEHYA7XDDWFIWGQMYRCG333Q";
+  const tgBotToken: string = "6672603630:AAGcfOtvXAqT6BRqqN8aKW4qcnah5sS05I4";
   const tmaId: number | null = (window as any).Telegram.WebApp.initDataUnsafe.user?.id ?? (window as any).Telegram.WebApp.chat?.id;
   
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -58,6 +113,9 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   const [toNetwork, setToNetwork] = useState<string | null>(null);
   const [fromAmount, setFromAmount] = useState<number | null>(null);
   const [toAmount, setToAmount] = useState<number | null>(null);
+  const [estimatedFee, setEstimatedFee] = useState<number>(0);
+  const [estimatedTime, setEstimatedTime] = useState<string>('');
+  const [warningMessage, setWarningMessage] = useState<string>('');
   const [recipientAddress, setRecipientAddress] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [fetchingOutput, setFetchingOutput] = useState<boolean>(false);
@@ -88,6 +146,7 @@ const BridgeView: React.FC<BridgeViewProps> = ({
     currs.forEach(cObj => {
       if (cObj.isFiat) return;
       const network = cObj.network.toLowerCase();
+      if (!Array.from(networks.keys()).includes(network.toUpperCase()) || !Array.from(networks.values()).includes(network.toLowerCase())) return;
       const currency = cObj.ticker;
       if (!netCurrMap.has(network)) {
         netCurrMap.set(network, []);
@@ -112,6 +171,9 @@ const BridgeView: React.FC<BridgeViewProps> = ({
       if (response.ok) {
         const eData: ExchangeEstimate = await response.json();
         setToAmount(Number(eData.toAmount.toFixed(4)));
+        setEstimatedFee(Number(eData.depositFee ?? 0));
+        setEstimatedTime(eData.transactionSpeedForecast ?? '');
+        setWarningMessage(eData.warningMessage ?? '');
         setFetchingOutput(false);
       } else {
         const errorData = await response.json();
@@ -128,32 +190,40 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   const createExchange = async () => {
     if (creatingExchange) return;
     setCreatingExchange(true);
+
     try {
-      // Mocking some firebase logic and handling API responses
-      // Please replace with actual logic
-      const order: Order = {
-        credit: 1,
-        chatId: tmaId ?? null,
-        amount: fromAmount ?? 0,
-        fromCurrency: fromCurrency,
-        toCurrency: toCurrency,
-        toNetwork: toNetwork,
-        fromNetwork: fromNetwork,
-        estimatedFee: 0,
-        estimatedFeeUsd: '',
-        recipientAddress: recipientAddress,
-        userRecipientAddress: recipientAddress,
-        messageId: '',
-        depositAddress: '',
-        status: 'pending',
-        step: 0,
-        toAmount: toAmount ?? 0,
-        exchangeId: '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        estimatedTime: '',
-        warningMessage: '',
-      };
+      const userDoc = await getDoc(doc(db, `users/${tmaId}`));
+      let userCredits = userDoc.data()?.credits ?? 0;
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, `users/${tmaId}`), {
+          credits: 0,
+          address: null,
+        });
+        userCredits = 5;
+      }
+
+      let balance = -1;
+
+      if (userDoc.data()?.address != null && userDoc.data()?.address != '') {
+        const response = await verifyAddress(userDoc.data()!.address);
+        balance = response;
+      }
+
+      if (balance < 150000 && userCredits <= 0) {
+        setError('Insufficient credits please purchase more by returning to the bridge chat typing /buy');
+        setCreatingExchange(false);
+        return;
+      }
+
+      const networkFeeResponse = await fetch(`https://api.changenow.io/v2/exchange/network-fee?fromCurrency=${fromCurrency}&toCurrency=${toCurrency}&fromNetwork=${fromNetwork}&toNetwork=${toNetwork}&fromAmount=${fromAmount}&convertedCurrency=${fromCurrency}&convertedNetwork=${fromNetwork}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-changenow-api-key': changeNowApiKey,
+        },
+      });
+
+      const responseData = await networkFeeResponse.json();
+      const estimatedFeeUsd = parseFloat(responseData.estimatedFee.converted.total).toFixed(2);
 
       // Simulate an API call to create exchange
       const response = await fetch('https://api.changenow.io/v2/exchange', {
@@ -177,9 +247,91 @@ const BridgeView: React.FC<BridgeViewProps> = ({
       if (response.ok) {
         // Handle successful exchange creation
         const eData = await response.json();
-        order.exchangeId = eData.id;
-        order.depositAddress = eData.payinAddress;
-        // ... (other success logic)
+        if (eData.error) {
+          setError(eData.error);
+          setCreatingExchange(false);
+          return;
+        }
+        const depositAddress = eData.payinAddress;
+        const nowTime = Timestamp.now();
+
+        const credit = balance < 150000 ? 1 : 0;
+        const chatId = tmaId;
+
+        const order: Order = {
+          credit,
+          chatId,
+          amount: fromAmount,
+          fromCurrency: fromCurrency,
+          toCurrency: toCurrency,
+          toNetwork: toNetwork,
+          fromNetwork: fromNetwork,
+          estimatedFee,
+          estimatedFeeUsd,
+          recipientAddress: recipientAddress,
+          userRecipientAddress: recipientAddress,
+          messageId: '',
+          depositAddress,
+          status: 'pending',
+          step: 0,
+          toAmount: toAmount,
+          exchangeId: eData.id,
+          createdAt: nowTime,
+          updatedAt: nowTime,
+          estimatedTime,
+          warningMessage,
+        };
+
+        const ref = await addDoc(collection(db, 'orders'), order);
+        await updateDoc(doc(db, `users/${tmaId}`), {
+          credits: increment(-credit),
+        });
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${fromCurrency == 'ton' ? `ton://transfer/$depositAddress?amount=${((fromAmount ?? 0) * Math.pow(10, 9)).toFixed(0)}` : depositAddress}`;
+        const msg = escapeMarkdown(
+          `*Bridge Order:* \`${ref.id}\`\n\n*${fromAmount} \$${fromCurrency!.toUpperCase()} (${fromNetwork!.toUpperCase()})  🔀  ${toAmount} \$${toCurrency!.toUpperCase()} (${toNetwork!.toUpperCase()})*\nNetwork Fee: *\$${estimatedFeeUsd} USD*\nDuration: *${estimatedTime} minutes*${warningMessage !== '' ? `\nWarning: *${warningMessage}*` : ''}\nRecipient: *\`${recipientAddress}\`*\n\nSend *${fromAmount} \$${fromCurrency!.toUpperCase()} (${fromNetwork!.toUpperCase()})* to the bridge address 👇\n\n\`${depositAddress}\`${fromCurrency === 'xrp' ? `\n\nDestination Tag: \`${eData['payinExtraId']}\`` : (fromCurrency === 'atom' || fromCurrency === 'xlm' ? `\n\nMemo: \`${eData['payinExtraId']}\`` : '')}\n(Click to copy)\n\n*Status:* Pending... ⏳\n\n`) +
+      `_Please allow a few minutes for confirmation after sending_`;
+      
+        const messageResponse = await fetch(`https://api.telegram.org/bot${tgBotToken}/sendPhoto`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            photo: qrUrl,
+            caption: msg,
+            parse_mode: 'MarkdownV2',
+            reply_markup: {
+              inline_keyboard: fromCurrency === 'ton'
+              ? [
+                  [
+                    {
+                      text: '✈️  BRIDGE $fromAmount \$TON  ✈️',
+                      url:
+                          `ton://transfer/${depositAddress}?amount=${fromAmount! * Math.pow(10, 9)}`
+                    }
+                  ],
+                  [
+                    {'text': 'Cancel ❌', 'callback_data': 'dismiss'}
+                  ]
+                ]
+              : [
+                  [
+                    {'text': 'Cancel ❌', 'callback_data': 'dismiss'}
+                  ]
+                ],
+            },
+          }),
+        });
+
+        const messageData = await messageResponse.json();
+        const messageId = messageData.result.message_id;
+        await updateDoc(ref, {
+          messageId,
+        });
+        setCreatingExchange(false);
+        (window as any).Telegram.WebApp.openTelegramLink('https://t.me/ton_mix_bot');
+        (window as any).Telegram.WebApp.close();
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Error creating exchange');
@@ -192,35 +344,35 @@ const BridgeView: React.FC<BridgeViewProps> = ({
   };
 
   // Equivalent function from Flutter: verifyAddress
-  // const verifyAddress = async (address: string) => {
-  //   try {
-  //     const tonConsoleResponse = await fetch(
-  //       'https://tonapi.io/v2/accounts/$address/jettons/EQAdFbynSUlzIlh_I4fXuYaer3rvY0TG0BK-NQZ-Y871pZoM',
-  //       {
-  //         headers: {
-  //         'Accept': 'application/json',
-  //         'Authorization': `Bearer ${tonConsoleApiKey}`,
-  //       },
-  //     });
+  const verifyAddress = async (address: string) => {
+    try {
+      const tonConsoleResponse = await fetch(
+        'https://tonapi.io/v2/accounts/$address/jettons/EQAdFbynSUlzIlh_I4fXuYaer3rvY0TG0BK-NQZ-Y871pZoM',
+        {
+          headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${tonConsoleApiKey}`,
+        },
+      });
 
-  //     const stringBalance = (await tonConsoleResponse.json())['balance'];
-  //     const balanceLarge = parseInt(stringBalance);
-  //     const divisor = Math.pow(10, 9);
-  //     const balance = balanceLarge / divisor;
+      const stringBalance = (await tonConsoleResponse.json())['balance'];
+      const balanceLarge = parseInt(stringBalance);
+      const divisor = Math.pow(10, 9);
+      const balance = balanceLarge / divisor;
 
-  //     return balance;
-  //   } catch (error) {
-  //     console.log(error);
-  //     setError((error as any).toString());
-  //     return 0;
-  //   }
-  // };
+      return balance;
+    } catch (error) {
+      console.log(error);
+      setError((error as any).toString());
+      return 0;
+    }
+  };
 
   // // Equivalent function from Flutter: escapeMarkdown
-  // const escapeMarkdown = (text: string) => {
-  //   // Escape markdown logic here
-  //   return text.replace(/([_{}[\]|()#+-.!])/g, '\\$1');
-  // };
+  const escapeMarkdown = (text: string) => {
+    // Escape markdown logic here
+    return text.replace(/([_{}[\]|()#+-.!])/g, '\\$1');
+  };
 
   const goToPreviousStep = () => {
     console.log(fromAmount, fromCurrency, fromNetwork, toCurrency, toNetwork, recipientAddress);
@@ -295,6 +447,9 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                 onChange={(value) => {
                   setFromAmount(value);
                   setToAmount(0);
+                  setEstimatedFee(0);
+                  setEstimatedTime('');
+                  setWarningMessage('');
                 }}
               />
             </div>

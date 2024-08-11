@@ -8,13 +8,7 @@
     <script>
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      const tmaId = window.Telegram.WebApp.initDataUnsafe.user?.id ?? window.Telegram.WebApp.chat?.id;
-      if (tmaId) alert(tmaId);
-      function twaClose() {
-        window.Telegram.WebApp.openTelegramLink('https://t.me/ton_mix_bot');
-        window.Telegram.WebApp.close();
-      }
-  </script>
+    </script>
     <title>$MIXER Bridge</title>
   </head>
   <body>
