@@ -6,7 +6,6 @@ import StakingView from './components/StakingView';
 import { useTonClient } from './hooks/useTonClient';
 import { Address, OpenedContract } from 'ton-core';
 import { JettonMaster, JettonWallet } from 'ton';
-import { useAsyncInitialize } from './hooks/useAsyncInitialize';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 
 function App() {
@@ -37,7 +36,7 @@ function App() {
     jettonWalletContract.getBalance().then(_mixerBalance => {
       const formattedBalance = parseInt(_mixerBalance.toString()) / (10 ** 9);
       setMixerBalance(formattedBalance);
-    }).catch(e => {
+    }).catch(() => {
       setMixerBalance(0);
     }).finally(() => {
       setLoadingMixerBalance(false);
@@ -63,7 +62,7 @@ function App() {
         jettonWalletContract.getBalance().then(_mixerBalance => {
           const formattedBalance = parseInt(_mixerBalance.toString()) / (10 ** 9);
           setMixerBalance(formattedBalance);
-        }).catch(e => {
+        }).catch(() => {
           setMixerBalance(0);
         });
       }
