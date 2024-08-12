@@ -13,7 +13,7 @@ function StakingView(params: {
           <TonConnectButton />
         </div>
         <div>
-          <b>{params.loadingMixerBalance ? 'Loading...' : (params.mixer_balance.toLocaleString('en-US', { maximumFractionDigits: 9 }))} </b><span style={{ marginLeft: 4, color: 'green' }}>$MIXER</span>
+          <b>{params.loadingMixerBalance ? 'Loading...' : (params.mixer_balance.toLocaleString())} </b><span style={{ marginLeft: 4, color: 'green' }}>$MIXER</span>
         </div>
       </div>
       <div style={{ marginBottom: 20}}>
