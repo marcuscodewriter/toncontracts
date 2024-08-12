@@ -8,6 +8,12 @@
     <script>
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
+      window.Telegram.WebApp.disableVerticalSwipes();
+      window.Telegram.WebApp.MainButton.setText('Join $MIXER TG');
+      window.Telegram.WebApp.MainButton.onClick(() => {
+        window.Telegram.WebApp.openTelegramLink('https://t.me/ton_mix_bot');
+      });
+      window.Telegram.WebApp.MainButton.show();
     </script>
     <title>$MIXER Bridge</title>
   </head>
