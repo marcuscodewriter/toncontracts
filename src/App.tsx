@@ -72,7 +72,9 @@ function App() {
 
   const [currentView, setCurrentView] = useState(0);
 
-  const [mixerBalance, setMixerBalance] = useState(0);
+  const [mixerBalance, setMixerBalance] = useState<number | undefined>();
+
+  // Use the useStakeContract hook to get values and functions
 
   return (
     <div style={{ backgroundColor: 'black', overflow: 'hidden' }}>
@@ -91,6 +93,9 @@ function App() {
         connected={connected}
         currentView={currentView}
         mixer_balance={mixerBalance}
+        stake={0}
+        rewards={0}
+        loadingStakeData={false}
         loadingMixerBalance={loadingMixerBalance}
       />
     </div>

@@ -21,7 +21,7 @@
 .scroll-view {
   display: flex;
   flex-direction: column;
-  max-height: 70vh;
+  max-height: 77vh;
   width: 100vw;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -138,7 +138,7 @@ input[type=number] {
 }
 
 .navigation {
-  margin: 20px 0 50vh;
+  margin: 20px 0 30vh;
 }
 
 .navigation button {
