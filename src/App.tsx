@@ -77,8 +77,8 @@ function App() {
   // Use the useStakeContract hook to get values and functions
 
   return (
-    <div style={{ backgroundColor: 'black', overflow: 'hidden' }}>
-      <div style={{ backgroundColor: 'black', height: '8vh', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: 'transparent', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'transparent', height: '8vh', overflow: 'hidden' }}>
         <button style={{ position: 'absolute', top: 0, left: 0, width: '50vw', height: '8vh', border: currentView === 0 ? '1px solid #66bb6a' : '', color: currentView === 0 ? 'rgb(14, 133, 14)' : 'white'}} onClick={() => setCurrentView(0)}>$MIXER Bridge</button>
         <button 
         disabled={!((window as any).Telegram.WebApp.initDataUnsafe.user?.id || (window as any).Telegram.WebApp.chat?.id)}

@@ -438,7 +438,29 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                   currentStep={currentStep}
                   options={Array.from(currencies.entries()).flatMap(([network, currs]) =>
                     currs.map(curr => `$${curr.ticker} (${network})`)
-                  ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '')}
+                  ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '').sort(
+                    (a, b) => {
+                      const aCurrency = a.split(' ')[0].slice(1);
+                      const bCurrency = b.split(' ')[0].slice(1);
+                      const aNetwork = a.split(' ')[1].slice(1, -1);
+                      const bNetwork = b.split(' ')[1].slice(1, -1);
+                      const aMatch = aCurrency.toLowerCase().includes(query.toLowerCase()) || aNetwork.toLowerCase().includes(query.toLowerCase());
+                      const bMatch = bCurrency.toLowerCase().includes(query.toLowerCase()) || bNetwork.toLowerCase().includes(query.toLowerCase());
+                      const aBothMatch = aCurrency.toLowerCase().includes(query.toLowerCase()) && aNetwork.toLowerCase().includes(query.toLowerCase());
+                      const bBothMatch = bCurrency.toLowerCase().includes(query.toLowerCase()) && bNetwork.toLowerCase().includes(query.toLowerCase());
+                      if (aBothMatch && !bBothMatch) {
+                        return -1;
+                      } else if (!aBothMatch && bBothMatch) {
+                        return 1;
+                      } else if (aMatch && !bMatch) {
+                        return -1;
+                      } else if (!aMatch && bMatch) {
+                        return 1;
+                      } else {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                      }
+                    }
+                  )}
                   onSelected={(selection) => {
                     const [currency, network] = selection.split(' ');
                     setFromCurrency(currency.slice(1).toLowerCase());
@@ -465,7 +487,29 @@ const BridgeView: React.FC<BridgeViewProps> = ({
                 currentStep={currentStep}
                 options={Array.from(currencies.entries()).flatMap(([network, currs]) =>
                   currs.map(curr => `$${curr.ticker} (${network})`)
-                ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '')}
+                ).filter(option => option.toLowerCase().includes(query.toLowerCase()) || query === '').sort(
+                  (a, b) => {
+                    const aCurrency = a.split(' ')[0].slice(1);
+                    const bCurrency = b.split(' ')[0].slice(1);
+                    const aNetwork = a.split(' ')[1].slice(1, -1);
+                    const bNetwork = b.split(' ')[1].slice(1, -1);
+                    const aMatch = aCurrency.toLowerCase().includes(query.toLowerCase()) || aNetwork.toLowerCase().includes(query.toLowerCase());
+                    const bMatch = bCurrency.toLowerCase().includes(query.toLowerCase()) || bNetwork.toLowerCase().includes(query.toLowerCase());
+                    const aBothMatch = aCurrency.toLowerCase().includes(query.toLowerCase()) && aNetwork.toLowerCase().includes(query.toLowerCase());
+                    const bBothMatch = bCurrency.toLowerCase().includes(query.toLowerCase()) && bNetwork.toLowerCase().includes(query.toLowerCase());
+                    if (aBothMatch && !bBothMatch) {
+                      return -1;
+                    } else if (!aBothMatch && bBothMatch) {
+                      return 1;
+                    } else if (aMatch && !bMatch) {
+                      return -1;
+                    } else if (!aMatch && bMatch) {
+                      return 1;
+                    } else {
+                      return a.toLowerCase().localeCompare(b.toLowerCase());
+                    }
+                  }
+                )}
                 onSelected={(selection) => {
                   const [currency, network] = selection.split(' ');
                   setToCurrency(currency.slice(1).toLowerCase());
@@ -552,7 +596,7 @@ const StepWidget: React.FC<StepWidgetProps> = ({ step, currentStep, label }) => 
   return (
     <div className={`step-widget ${isSelected ? 'selected' : ''}`}>
       <div className="circle">{step + 1}</div>
-      <div style={{ color: isSelected ? 'green' : 'white' }} className="label">{label}</div>
+      <div style={{ color: isSelected ? 'black' : 'white' }} className="label">{label}</div>
     </div>
   );
 };
@@ -588,7 +632,7 @@ const AmountField: React.FC<{ value: number, onChange: (value: number) => void }
           if (e.target.value === '0') {
             e.target.value = '';
           }
-          document.getElementById('scroll-view')?.scrollTo({ top: 16, behavior: 'smooth' });
+          // document.getElementById('scroll-view')?.scrollTo({ top: 16, behavior: 'smooth' });
         }}
         placeholder={`Amount`}
         value={isNaN(value) ? '' : value}
